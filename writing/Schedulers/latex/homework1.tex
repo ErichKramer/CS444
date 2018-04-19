@@ -1,0 +1,167 @@
+\documentclass[letterpaper,10pt,notitlepage,fleqn]{article}
+
+\usepackage{alltt}                                           
+\usepackage{float}
+\usepackage{color}
+\usepackage{indentfirst}
+\usepackage{url}
+\usepackage{balance}
+\usepackage{enumitem}
+\usepackage{geometry}
+\usepackage{hyperref}
+\usepackage{textcomp}
+\usepackage{listings}
+\usepackage{graphicx}
+\usepackage{amsfonts}
+\usepackage{amsmath}
+\usepackage{titling}
+
+\geometry{textheight=8.5in, textwidth=6in}
+
+%random comment
+
+\newcommand{\cred}[1]{{\color{red}#1}}
+\newcommand{\cblue}[1]{{\color{blue}#1}}
+
+\newcommand{\toc}{\tableofcontents}
+
+%\usepackage{hyperref}
+
+\title{Processes, Threads, Scheduling in Linux, FreeBSD and Windows}
+\date{2018-04-15}
+\author{Erich Kramer}
+
+
+%pull in the necessary preamble matter for pygments output
+\input{pygments.tex}
+
+%% The following metadata will show up in the PDF properties
+
+
+\parindent = 0.0 in
+\parskip = 0.1 in
+
+
+\begin{document}
+\begin{titlepage}
+\vspace*{\fill}
+
+\newcommand{\HRule}{\rule{\linewidth}{0.5mm}} % Defines a new command for the horizontal lines, change thickness here
+
+\center % Center everything on the page
+
+%----------------------------------------------------------------------------------------
+%TITLE SECTION
+%----------------------------------------------------------------------------------------
+
+%\includegraphics[scale=.5]{image.eps}
+\HRule \\[0.4cm]
+{ \huge \bfseries Writing \#1 \\Scheduling, Processes, Threads}\\[0.4cm] % Title of your document
+
+%----------------------------------------------------------------------------------------
+%HEADING SECTIONS
+%----------------------------------------------------------------------------------------
+
+\textsc{\Large Oregon State University}\\[0.5cm] % Name of your university/college
+\textsc{\Large CS444 Operating System II}\\[0.5cm] % Major heading such as course name
+\textsc{\large Spring 2018}\\[0.5cm] % Minor heading such as course title
+        \noindent \textbf{Erich \textsc{Kramer}} \\ % Your name
+
+\HRule \\[1.5cm]
+%----------------------------------------------------------------------------------------
+%AUTHOR SECTION
+%------------------------------------ --------------------------------------------------
+                %----------------------------------------------------------------------------------------
+                %DATE SECTION
+                %-----------------    -----------------------------------------------------------------------
+
+{\large \today}\\[3cm] % Date, change the \today to a set date if you want to be precise
+
+%----------------------------------------------------------------------------------------
+%ABSTRACT SECTION
+
+
+
+\vfill % Fill the rest of the page with whitespace
+
+
+
+\end{titlepage}
+
+\section{Linux}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\subsection{Processes}
+
+Processes are exposed via files
+
+A processs is a running program. 
+
+Processes exist in a hierarchy that traces back to the init system. (Or scheduler
+on some distrobutions if you want to be weird about it). 
+
+Init->runnable->running->ad nasuem->exit
+
+\subsection{Threads}
+
+Threads are treated as processes in Linux, with the exception that they share memory. 
+
+
+\subsection{Scheduling}
+
+
+
+\subsubsection{CFS Scheduler}
+
+The Linux Kernel uses an algorithm called the "Completely Fair Scheduler" It is the successor\\
+to the O(1) Scheduler, which boasted a linear time decision making. 
+
+
+%\subsubsection{The O(1) Scheduler}
+%To be implemented in the final write-up. For now please disregard
+
+
+
+\section{Windows}
+
+\subsection{Processes}
+
+According to MSDN docs[1], processes are organized under applications, and each process may contain one or more thread. 
+
+
+[1] https://msdn.microsoft.com/en-us/library/windows/desktop/ms684841(v=vs.85).aspx
+
+\subsection{Threads}
+
+
+Threads are managed via a scheduling priority value in the range 0-31. Threads which share a priority
+are treated the same by the system. Higher priority threads are run in round robin, dropping to lower priority only
+as necessary. If a lower priority thread is running and one of a higher value becomes runnable then the latter thread
+takes control for a time slice. 
+
+
+\subsection{Scheduling}
+
+The windows scheduler interacts directly with the threads of processes.
+
+
+\section{FreeBSD}
+
+\subsection{Processes}
+
+\subsection{Threads}
+
+\subsection{Scheduling}
+
+\subsubsection{ BSD Scheduler }
+
+\subsubsection{ ULE Scheduler }
+
+
+
+
+\end{document}

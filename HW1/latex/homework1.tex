@@ -1,0 +1,118 @@
+\documentclass[letterpaper,10pt,notitlepage,fleqn]{article}
+
+\usepackage{alltt}                                           
+\usepackage{float}
+\usepackage{color}
+\usepackage{indentfirst}
+\usepackage{url}
+\usepackage{balance}
+\usepackage{enumitem}
+\usepackage{geometry}
+\usepackage{hyperref}
+\usepackage{textcomp}
+\usepackage{listings}
+\usepackage{graphicx}
+\usepackage{amsfonts}
+\usepackage{amsmath}
+\usepackage{titling}
+
+\geometry{textheight=8.5in, textwidth=6in}
+
+%random comment
+
+\newcommand{\cred}[1]{{\color{red}#1}}
+\newcommand{\cblue}[1]{{\color{blue}#1}}
+
+\newcommand{\toc}{\tableofcontents}
+
+%\usepackage{hyperref}
+
+\title{CS 444 Concurrency 1 Write Up}
+\date{2018-04-15}
+\author{Erich Kramer}
+
+
+%pull in the necessary preamble matter for pygments output
+\input{pygments.tex}
+
+%% The following metadata will show up in the PDF properties
+
+
+\parindent = 0.0 in
+\parskip = 0.1 in
+
+
+\begin{document}
+\begin{titlepage}
+\vspace*{\fill}
+
+\newcommand{\HRule}{\rule{\linewidth}{0.5mm}} % Defines a new command for the horizontal lines, change thickness here
+
+\center % Center everything on the page
+
+%----------------------------------------------------------------------------------------
+%TITLE SECTION
+%----------------------------------------------------------------------------------------
+
+%\includegraphics[scale=.5]{image.eps}
+\HRule \\[0.4cm]
+{ \huge \bfseries Homework \#1}\\[0.4cm] % Title of your document
+
+%----------------------------------------------------------------------------------------
+%HEADING SECTIONS
+%----------------------------------------------------------------------------------------
+
+\textsc{\LARGE Oregon State University}\\[0.5cm] % Name of your university/college
+\textsc{\Large CS444 Operating System II}\\[0.5cm] % Major heading such as course name
+\textsc{\large Spring 2018}\\[0.5cm] % Minor heading such as course title
+        \noindent \textbf{Erich \textsc{Kramer}} \\ % Your name
+
+\HRule \\[1.5cm]
+%----------------------------------------------------------------------------------------
+%AUTHOR SECTION
+%------------------------------------ --------------------------------------------------
+                %----------------------------------------------------------------------------------------
+                %DATE SECTION
+                %-----------------    -----------------------------------------------------------------------
+
+{\large \today}\\[3cm] % Date, change the \today to a set date if you want to be precise
+
+%----------------------------------------------------------------------------------------
+%ABSTRACT SECTION
+
+
+
+\vfill % Fill the rest of the page with whitespace
+
+
+
+\end{titlepage}
+
+\section{Concurrency 1}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\subsection{Questions:}
+\subsubsection{What do you think is the main point of the assignment?}
+Concurrency exposure, some early semaphore taste to get used to proper concurrency assignments. 
+
+
+\subsubsection{How did we personally approach the problem?}
+There are three different conditions that need to be addressed with some form of locking. One, the buffer of objects cannot be both read and written to at the same time, likewise we only want one thread to be writing or reading at a given time. So we need a global mutex to lock  the buffer as it is globally shared. Instead of having it be a global variable lets just set a struct that we pass as args to all of our threads. It is still effectively global but at least it looks less awful in the source code. We also need to address the condition of a full and empty buffer in the context of the consumer and producer. To do this we have two unique semaphores that limit readers and writers so that only so many may be functioning at the same time. Even with more consumers than we have buffer slots we will not accidentally over-read or access an empty buffer location. Similarly we don't want to overwrite an element with our producer and so we limit this with another semaphore.  
+
+\subsubsection{How did we ensure the solution was correct?}
+One of my biggest concerns was that my code might segfault on edge conditions. To test this and later to debug I would run with a low number of one type of thread and a very high number of another type of thread.
+
+\subsubsection{What did we learn?}
+Using sem\_getvalue to keep count of things is really bad. Threading is not as scary as it might seem.
+
+\subsection{Program Design}
+I originally approached this with the idea that I would use a semaphore to control the count of elements in the list for both the consumer and producer. One semaphore would observe the quantity remaining, the other would observe the distance from a full array. In doing this I could allow the consumer to block when the list was at 0 elements, as it would wait on the semaphore which was the quantity in the list. The producer also would wait on the semaphore for the quantity of spots left in the list, when it was 0 it too would wait. The consequence of this was that when running multiple threads there was a race condition in my design. I circumvented this issue by instead using a counter which was shared across threads for the size of the buffer and simply incrementing decrementing only inside the thread which had control of buffer access. The semaphore here working only to prevent multiple consumers that might attempt to consume when there are not enough elements to be consumed.
+
+
+%\input{__mt19937ar.c.tex}
+
+\end{document}
