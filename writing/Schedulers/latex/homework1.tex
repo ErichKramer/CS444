@@ -28,7 +28,7 @@
 %\usepackage{hyperref}
 
 \title{Processes, Threads, Scheduling in Linux, FreeBSD and Windows}
-\date{2018-04-15}
+\date{2018-04-18}
 \author{Erich Kramer}
 
 
@@ -97,18 +97,37 @@
 
 \subsection{Processes}
 
-Processes are exposed via files
+Linux processes exist in memory and have related files resting under /proc so that programs
+may interact with other processes in a safe way. Here information about file descriptors, cwd,
+attributes and various other important process data can be parsed. Prior to this the solution 
+was to allow executing programs access to the Kernel memory data structures \cite{FHS}. 
+This has both heavy over head and potential security holes. 
 
-A processs is a running program. 
 
-Processes exist in a hierarchy that traces back to the init system. (Or scheduler
-on some distrobutions if you want to be weird about it). 
+Processes exist in a hierarchy that traces back to the init system. All processes have
+a parent which can be either the process which it descends from, or the init system itself.
+Typically a process which has the init system as its parent and was created after the boot process
+is a daemon\cite{LinuxBook}. In some systems the parent of the init system is PID 0, the 
+scheduler. However this is inconsistant and an ambiguous phrasing as it becomes difficult to
+distinguish between a NUll value and a PID of 0. 
 
-Init->runnable->running->ad nasuem->exit
+Typically processes on Linux exist in a few possible states, first they are initialized and 
+immedietly are runnable. When they are picked up by the scheduler and ran they may either exit
+if they have completed their task or they will enter the blocked state if they exceed their 
+allocated CPU time. From there they proceed to runnable ad. nasuem until their termination.
+However, before they can be cleaned up they are in a zombie state in which a parent must 
+wait on them to die. \cite{McGrath} 
+
 
 \subsection{Threads}
 
-Threads are treated as processes in Linux, with the exception that they share memory. 
+
+Prior to Linux 2.4 threads had unique PIDs and were implemented as processes. The main difference 
+between them and another system process was that they shared an executable and memory. They were 
+still distinct from fork()'d processes. 
+
+However, after Linux2.4 thread groups were added as a feature\cite{ThreadAsProc}. In conjunction 
+with the clone() function threads no longer have seperates PIDs. 
 
 
 \subsection{Scheduling}
@@ -118,7 +137,11 @@ Threads are treated as processes in Linux, with the exception that they share me
 \subsubsection{CFS Scheduler}
 
 The Linux Kernel uses an algorithm called the "Completely Fair Scheduler" It is the successor\\
-to the O(1) Scheduler, which boasted a linear time decision making. 
+to the O(1) Scheduler, which boasted a linear time decision making. The CFS makes use of a red-black
+tree to keep track of used virtual time and assert fairness. The intent is not to assign CPU time
+in a round robin fashion equally to processes. It is instead to assign time proportional to the
+priority of a process\cite{LinuxSched}. In doing this the scheduler is able to assign time to low 
+priority tasks despite while still giving the majority to those of a higher priority. 
 
 
 %\subsubsection{The O(1) Scheduler}
@@ -130,38 +153,136 @@ to the O(1) Scheduler, which boasted a linear time decision making.
 
 \subsection{Processes}
 
-According to MSDN docs[1], processes are organized under applications, and each process may contain one or more thread. 
+According to MSDN docs\cite{MSProc}, processes are organized under applications, and each 
+process may contain one or more thread. These processes have their own security context and
+environment, and inside this enviornment there exists a primary thread which instantiates 
+execution. From this thread, similarly to the init process in Linux with regards to processes, 
+spawns more threads inside the context of this application. This then allows an application to 
+apply multiprocessing solutions and so on. 
 
-
-[1] https://msdn.microsoft.com/en-us/library/windows/desktop/ms684841(v=vs.85).aspx
+Of note is also the Job object which exists on windows. As processes manage threads that 
+they contain, job objects also manage processes which they contain suggesting even more 
+abstraction on windows \cite{MSAbout}. 
 
 \subsection{Threads}
 
-
-Threads are managed via a scheduling priority value in the range 0-31. Threads which share a priority
-are treated the same by the system. Higher priority threads are run in round robin, dropping to lower priority only
-as necessary. If a lower priority thread is running and one of a higher value becomes runnable then the latter thread
-takes control for a time slice. 
+As discussed above threads on windows exist for all applications \cite{MSAbout}. 
+Each thread in Windows maintains its own exception handlers, priority and thread local
+storage and identifier. As Windows seems to have a fetish for layers of abstraction on execution
+partitioning there also exists a layer underneath threads through the fiber concept that MS 
+uses. They can be used as a substitute for threads and may be manually scheduled by the program. 
 
 
 \subsection{Scheduling}
 
-The windows scheduler interacts directly with the threads of processes.
+Threads are managed via a scheduling priority value in the range 0-31. Threads 
+which share a priority are treated the same by the system. Higher priority threads 
+are run in round robin, dropping to lower priority onlyas necessary. If a 
+lower priority thread is running and one of a higher value becomes runnable 
+then the latter thread takes control for a time slice. \cite{MSScheduling} 
+As intuition suggests this is not the best scheduling algorithm for a system and falls 
+victim to low priority threads being given no execution time. This is not ideal as while you 
+do want to prioritize some tasks you also want to have equality and all processes should be
+given CPU time. High load and high priority tasks even risk freezing a system. 
+
 
 
 \section{FreeBSD}
 
 \subsection{Processes}
 
+FreeBSD also uses Process IDs as does Linux. There are many similarities between the two 
+kernels and their handling of processes as they are both direct Unix derivatives \cite{BSDPgen}.
+
+
 \subsection{Threads}
+
+As would be expected FreeBSD implements threads in ways similar to Linux as it sources
+itself in POSIX and UNIX specs. Whether the model uses a 1:1 or 1:N process to thread model
+is genearlly dependent on the release of BSD and the Kernel customization by users. 
 
 \subsection{Scheduling}
 
-\subsubsection{ BSD Scheduler }
-
+%\subsubsection{ BSD Scheduler }
 \subsubsection{ ULE Scheduler }
+The ULE Scheduler is the successor to the BSD scheduler, and was introduced in BSD 5.0 
+\cite{BSDProc}. It is currently the default scheduler due to advantages it has over the
+BSD Scheduler. Namely it overcame deficites in SMP and SMT. It is comprised of a High 
+and Low level Scheduler. The Low level scheduler \cite{ULE} reads from the runqueues and 
+places threads into execution, while the high level scheduler operates every few seconds and
+arranges the threads to be executed. 
+
+This scheduler also has a unique Sleepqueue where a program is stored if it is blocking. The 
+high level scheduler must operate on threads to move them into priorities.  
 
 
+\begin{thebibliography}{50}
 
+
+%\section{Linux}
+%Linux Citations
+
+\bibitem{FHS}
+    \textit{Filesystem Hierarchy Standard}  The Linux Foundation 
+
+\bibitem{LinuxBook}
+    Michael Kerrisk, \textit{The Linux Programming Interface} \\
+        No Starch Press San Francisco, CA, USA 2010
+
+\bibitem{McGrath}
+    Kevin McGrath Operating Systems 2 Lecture, Oregon State University
+
+\bibitem{ThreadAsProc}
+    ikkachu "Are thread implemented as processes on Linux?" [Online] \\
+    https://unix.stackexchange.com/questions/364660/are-threads-implemented-as-processes-on-linux
+
+\bibitem{LinuxThreadBlog}
+    Himanshu Arora "Introduction to Linux Threads" [Online]\\
+    Available: https://www.thegeekstuff.com/2012/03/linux-threads-intro/?utm\_source=tuicool
+
+\bibitem{LinuxSched}
+    Lie Ryan "Difference between Windows and Linux Scheduler" Access April 14th 2018 [Online]
+        Available: https://superuser.com/questions/414604/difference-between-the-windows-and-linux-thread-scheduler 
+
+
+%Microsoft Citations
+
+\bibitem{MSProc}
+    "Processes and Threads"
+        Microsoft Documentation [Online] \\Available:
+        https://msdn.microsoft.com/en-us/library/windows/desktop/ms684841(v=vs.85).aspx
+
+\bibitem{MSAbout}
+    "About Threads and Processes" Microsoft Documentation [Online] \\Available:
+    https://superuser.com/questions/414604/difference-between-the-windows-and-linux-thread-scheduler
+
+
+\bibitem{MSScheduling}
+    "Scheduling Priorities"
+        Microsoft Documentation [Online] \\Available:
+https://msdn.microsoft.com/en-us/library/windows/desktop/ms685100(v=vs.85).aspx
+
+%BSD Citations
+
+\bibitem{BSDCompare}
+    "Comparison of Solaris, Linux, and FreeBSD Kernels" Open Solaris [Online]\\
+        Available: https://web.archive.org/web/20080807124435/http://cn.opensolaris.org/files/solaris\_linux\_bsd\_cmp.pdf
+
+\bibitem{BSDProc}
+    "Process Management in the FreeBSD Operating System" informIT \\
+
+\bibitem{BSDPgen}
+    Processes and Daemons [Online]\\ Available: 
+    https://www.freebsd.org/doc/handbook/basics-processes.html
+
+\bibitem{BSDThread}
+    "A look inside..." FreeBSD [Online]\\
+        Available: https://www.freebsd.org/doc/en\_US.ISO8859-1/articles/linux-emulation/inside.html
+
+\bibitem{ULE}
+    \textit{ULE: A Modern Scheduler for FreeBSD} Jeff Roberson The FreeBSD Project
+    September 2003
+
+\end{thebibliography}
 
 \end{document}
