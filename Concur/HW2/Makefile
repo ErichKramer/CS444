@@ -4,7 +4,7 @@ CFLAGS=-lpthread -Wall
 
 
 consumerproducer: concurr2.c mt19937ar.c
-	$(CC) concurr1.c mt19937ar.c -o consumerproducer $(CFLAGS)
+	$(CC) concurr2.c mt19937ar.c -o consumerproducer $(CFLAGS)
 
 clean: 
 	rm consumerproducer
