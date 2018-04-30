@@ -53,12 +53,15 @@ void getFork(arg* args){
             continue;
         }
 
+
         check = pthread_mutex_trylock(args->right);
         if (check != 0){
             sem_post(table);
             pthread_mutex_unlock(args->left);
             continue;
         }
+        /*Remember to unlock left if we can't also lock right. We
+         * just jump back in line and wait for a fork to free up    */
 
         sem_post(table);  /*We got ours, now take it and run*/
         break;
@@ -90,7 +93,7 @@ void think(arg* args){
     printf("%s is thinking about ways to make students cry.\n", 
             args->name);
     sleep(myRand(1, 20));
-    printf("%s is really tied from thinking. Time to eat!\n", args->name);
+    printf("%s is really tired from thinking. Time to eat!\n", args->name);
     return;
 }
 
@@ -144,8 +147,7 @@ int main(int argc, char** argv){
     for( i = 0; i< P; i++){
         pthread_join(philos[i], NULL);
     }
-
-
+    return 0;
 }
 
 
