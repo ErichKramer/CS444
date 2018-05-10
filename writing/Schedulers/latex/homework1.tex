@@ -192,14 +192,17 @@ given CPU time. High load and high priority tasks even risk freezing a system.
 \subsection{Processes}
 
 FreeBSD also uses Process IDs as does Linux. There are many similarities between the two 
-kernels and their handling of processes as they are both direct Unix derivatives \cite{BSDPgen}.
+kernels and their handling of processes as they are both direct Unix derivatives \cite{BSDPgen}. 
+Similar to Linux processes are all spawned by the fork() command on one level or another. Often 
+features implemented in either Linux or BSD end up becoming uniform between the two as there is 
+heavy cross contamination.
 
 
 \subsection{Threads}
 
 As would be expected FreeBSD implements threads in ways similar to Linux as it sources
 itself in POSIX and UNIX specs. Whether the model uses a 1:1 or 1:N process to thread model
-is genearlly dependent on the release of BSD and the Kernel customization by users. 
+is genearlly dependent on the release of BSD and the Kernel customization by users\cite{BSDThread}. 
 
 \subsection{Scheduling}
 
@@ -210,7 +213,7 @@ The ULE Scheduler is the successor to the BSD scheduler, and was introduced in B
 BSD Scheduler. Namely it overcame deficites in SMP and SMT. It is comprised of a High 
 and Low level Scheduler. The Low level scheduler \cite{ULE} reads from the runqueues and 
 places threads into execution, while the high level scheduler operates every few seconds and
-arranges the threads to be executed. 
+arranges the threads to be executed\cite{BSDProc}. 
 
 This scheduler also has a unique Sleepqueue where a program is stored if it is blocking. The 
 high level scheduler must operate on threads to move them into priorities.  
