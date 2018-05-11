@@ -98,45 +98,88 @@
 
 \subsection{IOScheduling}
 
-\subsubsection{Deadline Scheduler}
 
+Linux makes use of three different schedulers, as their applicability varies for 
+different devices. It is important to be intelligent and to reorder requests so that those
+which are in sequence are read in order. In doing this it is possible to optimize read speed
+on average, at the cost of some requests being served out of order. 
 
 \subsubsection{No-Op Scheduler}
+
+The No-Op Scheduler often works best on memory backed block devices which do not have a rotational
+system, as optimizing order on these types of devies does not impact overall access time. This would
+lead to arbitrary computation and favoritism between processes \cite{stackDisc}. 
+
+
+\subsubsection{Deadline Scheduler}
+
+The deadline scheduler pushes the Linux Kernel's behavior closer to that of a real time 
+operating system. It sets a hard limit on the amount of time I/O might wait, servicing 
+those which have exceeded a certain time limit before anything else \cite{stackDisc}. 
+
+\subsubsection{CFQ Scheduler}
+
+To quote the Linux Kernel documentation "The main aim of the CFQ scheduler is to 
+provide a fair allocation of the disk I/O bandwidth for all the processes which requests[sic]
+an I/O operation." \cite{CFQ}. A process's I/O prority is used to determine how I/O requests
+are batched together. The Completely Fair Queuing scheduler 
 
 
 
 \section{Windows}
+\subsubsection{No-Op Scheduler}
 
-\subsection{Processes}
+\subsection{IRPs}
 
-\subsection{Threads}
+Windows uses its own in-house I/O Request Packets (IRPs) for talking to drivers. 
 
-\subsection{Scheduling}
 
 
 
 \section{FreeBSD}
 
-\subsection{Processes}
 
-\subsection{Threads}
 
-\subsection{Scheduling}
 
-\subsubsection{ BSD Scheduler }
 
-\subsubsection{ ULE Scheduler }
 
 \begin{thebibliography}{20}
 
+
+%LINUX BIB SECTION
+    
 \bibitem{courseNotesLinux}
     Kevin McGrath, Operating Systems 444 \\
-        I/O and provided functionality \\
-        [Online] Canvas, Restricted Access
+    I/O and provided functionality \\
+    Available: Canvas Restricted Access
 
 \bibitem{CFQ}
     Hellwig et. al., Linux Kernel Documentation \\
-    [Online] https://github.com/torvalds/linux/blob/master/Documentation/block/cfq-iosched.txt
+    Available: https://github.com/torvalds/linux/blob/master/Documentation/block/cfq-iosched.txt
+
+\bibitem{stackDisc}
+    haste, StackOverflow discussion
+    Available: https://stackoverflow.com/questions/1009577/selecting-a-linux-i-o-scheduler
+
+
+%WINDOWS BIB SECTION
+
+\bibitem{WinIOView}
+    Contributors Microsoft Documentation "Overview of the Windows I/O Model"
+    Available: https://docs.microsoft.com/en-us/windows-hardware/drivers/kernel/overview-of-the-windows-i-o-model
+
+
+
+%BSD BIB SECTION
+
+
+
+
+\end{thebibliography}
+
+        
+
+
 
 
 \end{document}
