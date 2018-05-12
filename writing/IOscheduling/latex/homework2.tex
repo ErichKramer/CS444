@@ -104,6 +104,9 @@ different devices. It is important to be intelligent and to reorder requests so 
 which are in sequence are read in order. In doing this it is possible to optimize read speed
 on average, at the cost of some requests being served out of order. 
 
+During typical runtime the Kernel can easily switch between any of these IOschedulers
+allowing adaptable behavior for meeting variable demand.
+
 \subsubsection{No-Op Scheduler}
 
 The No-Op Scheduler often works best on memory backed block devices which do not have a rotational
@@ -122,25 +125,76 @@ those which have exceeded a certain time limit before anything else \cite{stackD
 To quote the Linux Kernel documentation "The main aim of the CFQ scheduler is to 
 provide a fair allocation of the disk I/O bandwidth for all the processes which requests[sic]
 an I/O operation." \cite{CFQ}. A process's I/O prority is used to determine how I/O requests
-are batched together. The Completely Fair Queuing scheduler 
+are batched together. The Completely Fair Queuing scheduler places each processes requests 
+into a per-process queue. These queues are then allocated timeslices for access to the disk,
+where the time slice size is contingent on priority. 
 
 
 
 \section{Windows}
-\subsubsection{No-Op Scheduler}
 
-\subsection{IRPs}
+\subsection{IOScheduling}
 
-Windows uses its own in-house I/O Request Packets (IRPs) for talking to drivers. 
+Windows I/O Scheduling operates via layers of complexity and abstraction much greater than
+that of Linux or FreeBSD. In doing this Windows is able to create a uniform interface for 
+developers while still having fine tuned optimization.
+
+\subsubsection{IRPs}
+
+Windows uses its own in-house I/O Request Packets (IRPs) for talking to drivers. Via a Subsystem 
+layer of abstraction developers do not have to worry about driver specifics or configurations.
+IRPs are spun up by the subsystem inside the Kernel mode, after their access rights have been 
+verified. After a few steps the Kernel will return a handle for a file object to the subsystem, who
+then returns it to a user-level application for access, or in the case of a failure an error is 
+returned \cite{winIOView}.
+
+
+\subsubsection{ File Objects }
+
+Windows handles disk operations via file objects. To read a file from a mass-storage device you must
+handle a file object returned by the subsystem. The subsystem calls the system services and requests 
+to open a named file and then passes through the returned file object. A File object is a logical 
+interface between kernel and user-mode processes and contains both the data in the file as well as
+a few kernel attributes.
+\cite{winFileOBJ} \cite{fOBJ}
+
+%maybe remvoe this or rename it or make it less sassy I dunno smh
+\subsubsection{Abstraction}
+In doing this Windows can more easily hide information on how specifically their system works and 
+can make it harder for projects like Wine to thrive. It also presents the benefit that programs
+can be made portable between Windows versions. 
 
 
 
 
 \section{FreeBSD}
 
+Documentation for BSD is few and far between. The most insightful article is a paper published 
+by Netflix \cite{IOBSDCAM}documenting advantages in their modifications to I/O scheduling in 
+FreeBSD. Another helpful --yet outdated-- article from 2005 describes the IOScheduler for 
+BSD as being based in 
 
+\subsection{IOScheduling}
 
+\subsubsection{Elevator}
+Traditionally, BSD uses an elevator scheduler \cite{arrow}. As we have implemented in class,
+the elevator, C-LOOK algorithm operates by scanning in one direction along the disk, stopping
+to service requests which it travels over en-route to its destination. In doing this the average
+time for each disk access is reduced, at the cost of fairness. 
 
+\subsubsection{GEOM}
+
+The GEOM based scheduler attempts to better optimize IO scheduling, more so than that of 
+traditional elevator algorithms. 
+\cite{GEOM} , \cite{arrow}
+
+\subsubsection{BFQ}
+Placing BFQ in FreeBSD is perhaps not full correct, as it also appears in Linux. However it is 
+important to note the frequency of cross-polination between BSD and Linux. Both share code 
+and solutions are carried between the two frequently. BFQ is one such example. My current
+GNU/Linux distribution, Manjaro, comes out of the box with BFQ as its default. The
+BFQ Scheduler (Budget-Fair Queueing) "operates similarly to CFQ, but supports hierarchical 
+scheduling using a cgroups interface" \cite{BFQ}. 
 
 
 \begin{thebibliography}{20}
@@ -164,16 +218,39 @@ Windows uses its own in-house I/O Request Packets (IRPs) for talking to drivers.
 
 %WINDOWS BIB SECTION
 
-\bibitem{WinIOView}
+\bibitem{winIOView}
     Contributors Microsoft Documentation "Overview of the Windows I/O Model"
     Available: https://docs.microsoft.com/en-us/windows-hardware/drivers/kernel/overview-of-the-windows-i-o-model
 
+\bibitem{winFileOBJ}
+    Contributors, Microsoft Documentation "End-User I/O Requests and File Objects"
+    Available: https://docs.microsoft.com/en-us/windows-hardware/drivers/kernel/end-user-i-o-requests-and-file-objects
 
+\bibitem{fOBJ}
+    Windows Documentation
+    Available: https://msdn.microsoft.com/en-us/library/windows/desktop/aa364395(v=vs.85).aspx
 
 %BSD BIB SECTION
 
+\bibitem{geomSched}
+    Disk Schedueling in FreeBSD
+    Available: http://retis.sssup.it/~fabio/freebsd/geom\_sched/proto/
 
+\bibitem{IOBSDCAM}
+    IO Scheduling in FreeBSD's CAM Subsystem
+    Available: https://people.freebsd.org/~imp/bsdcan2015/iosched-v3.pdf
 
+\bibitem{arrow}
+    Ivan Voras, "GEOM disk IO scheduler framework"
+    Available: http://www.ivoras.net/blog/tree/2010-04-12.geom-disk-io-scheduler-framework.html
+
+\bibitem{GEOM}
+    Luigi Rizzo, "Geom-based Disk Schedulers"
+    Available: http://info.iet.unipi.it/~luigi/geom\_sched/
+
+\bibitem{BFQ}
+    fabio, BFQ I/O Scheduler
+    Available: http://retis.sssup.it/~fabio/linux/bfq/
 
 \end{thebibliography}
 
