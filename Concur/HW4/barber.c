@@ -19,25 +19,33 @@ pthread_mutex_t* barberChair;
 sem_t* customerChairs;
 
 typedef struct{
-
+    pthread_mutex_t* bChair;
+    sem_t* cChairs;
 }arg;
 
 
 arg* argGen(){
     arg* tmp = (arg*)malloc(sizeof(arg) );
+
+    tmp->bChair = barberChair;
+    tmp->cChairs = customerChairs;
+
     return tmp;
 }
 
 void *barber( void* args){
-    arg* barbP = (arg*) args;
+    //arg* barbP = (arg*) args;
     printf("The barber blinks into existence!\n");
 
+    return NULL;
 }
 
 void *customer( void* args){
-    arg* custP = (arg*) args;
+    //arg* custP = (arg*) args;
     printf("Customer has entered the store!\n");
+    pthread_mutex_lock( barberChair);
 
+    return NULL;
 }
 
 
@@ -75,8 +83,9 @@ void init(int seats){
 
 int main(int argc, char** argv){
     int i = 0;
-    int joinStatus;
+    int joinStatus= 0;
     int seats = THREAD_COUNT-3;
+    init(seats);
 
     pthread_t threads[THREAD_COUNT];/*Extra customers that leave immedietly*/
 
@@ -92,10 +101,9 @@ int main(int argc, char** argv){
         i = i+1;
         /*Attempt a join*/
         joinStatus = pthread_tryjoin_np( threads[i], NULL);
-        if(joinStatus){
+        if(!joinStatus){
             /*We joined the thread*/
-            threads[i] = 0; /*Inefficient*/
-            spawn(threads[i], 1, customer, param);
+            spawn(threads+i, 1, customer, param);
         }
 
     }
