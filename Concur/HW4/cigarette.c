@@ -2,7 +2,6 @@
  * Erich Kramer Concurrency Homework 3 CS444
  * Problem 2, 
  *
- *
  * */
 #include <pthread.h>
 #include <semaphore.h>
@@ -21,7 +20,10 @@ typedef struct{
 
 arg* argGen(){
     arg* tmp = (arg*)malloc(sizeof(arg) );
-    
+ 
+    /*Important population goes here*/
+
+    return tmp;   
 }
 
 
@@ -30,11 +32,14 @@ void *thread_exec( void* args){
 }
 
 
-void spawn(pthread_t* thr, int size, runThread, buildArg ){
+void spawn(pthread_t* thr, int size, void* (*runThread)(void*), arg* args ){
     int i, check;
     for( i = 0; i < size; i++){
-        arg* param = buildArg();
-        check = pthread_create(&thr[i], NULL, &
+        check = pthread_create(&thr[i], NULL, runThread, (void*) args);
+        if( check != 0){
+            fprintf(stderr, "Thread Creation Failure\n");
+            exit(1);
+        }
     }
 }
 
@@ -46,8 +51,13 @@ void join(pthread_t* thr, int size ){
 
 }
 
-int main(int argc, char** argv){
 
+void init(){
+
+}
+
+int main(int argc, char** argv){
+    init();
     pthread_t threads[THREAD_COUNT];
 
     
